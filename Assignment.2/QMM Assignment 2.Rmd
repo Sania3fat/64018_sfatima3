@@ -1,0 +1,91 @@
+---
+title: "LINEAR PROGRAMMING MODEL"
+author: "SANIA FATIMA"
+date: "2023-09-22"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+LINEAR PROGRAMMING MODEL:
+
+	Objective Function:  
+
+Our goal is to maximize (Smax) the overall profit:
+
+Smax = 420pA1+420pA2+420pA3+360pB1+ 360pB2+ 360pB3+ 300pC1+ 300pC2+300pC3 respectively.
+
+	 Constraints:
+EXCESS CAPACITY:
+Excess capacity for Plant 1: pA1 + pB1 + pC1 <= 750
+Excess capacity for Plant 2: pA2 + pB2 + pC2 <= 900
+Excess capacity for Plant 3: pA3 + pB3 + pC3 <= 450
+
+RESTRICTION ON SALE PREDICTIONS:
+Large sales prediction: pA1 + pB2 + pC3 < = 900
+Medium sales prediction: pA1 + pB2 + pC3 <= 1200
+Small sales prediction: pA1 + pB2 + pC3 <= 750 
+
+STORAGE VOLUME:
+Storage volume in plant 1: 20pA1+15pB1+12pC1 <= 13000
+Storage area in plant 2: 20pA2 + 15pB2 + 12pC2 <= 12000.
+Storage space in plant 3: 20pA3 + 15pB3 + 12pC3 <= 5000.
+
+Given that each plant should consume an equal percentage of its production unit.
+  900(pA1+ pB1+ pC1) – 750(pA2+ pB2+ pC2) = 0
+	450(pA2+ pB2+ pC2) – 900(pA3+ pB3+ pC3) = 0
+	450(pA1+pB1+pC1) – 750 (pA3+pB3+pC3)=0
+
+NON-NEGATIVITY:
+      pA1, pA2, pA3, pB1, pB2, pB3, pC1, pC2, pC3 >= 0:( non-Negativity)
+
+
+
+```{r}
+#installed the library lpsolve and call it, to run the code
+library(lpSolve)
+
+#defining the objective function:
+objective=c(420,360,300,
+            420,360,300,
+            420,360,300)
+
+#the constraints:
+constraints=matrix(c(1,1,1,0,0,0,0,0,0,
+                     0,0,0,1,1,1,0,0,0,
+                     0,0,0,0,0,0,1,1,1,
+                     1,0,0,1,0,0,1,0,0,
+                     0,1,0,0,1,0,0,1,0,
+                     0,0,1,0,0,1,0,0,1,
+                     20,15,12,0,0,0,0,0,0,
+                     0,0,0,20,15,12,0,0,0,
+                     0,0,0,0,0,0,20,15,12),nrow =9,byrow = TRUE)
+
+#defining the directions of inequality constraints
+directions=c("<=",
+             "<=",
+             "<=",
+             "<=",
+             "<=",
+             "<=",
+             "<=",
+             "<=",
+             "<=")
+
+#setting up the right hand side values
+values=c(750,
+         900,
+         450,
+         900,
+         1200,
+         750,
+         13000,
+         12000,
+         5000)
+
+#the value of S
+lp("max",objective,constraints,directions,values)
+#final solution
+lp("max",objective,constraints,directions,values)$solution
+```
+
