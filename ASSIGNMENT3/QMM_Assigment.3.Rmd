@@ -1,0 +1,88 @@
+---
+title: "TRANSPORTATION PROBLEM"
+author: "SANIA FATIMA"
+date: "2023-10-10"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+***
+SUMMARY:
+Objective Function:Minimize TC=622x11+614x12+630x13+
+                               641x21+645x22+649x23
+                               
+Subject to Constraints[Supply]:x11+x12+x13>=100
+                               x21+x22+x23>=120
+                      [Demand]:x11+x21>=80
+                               x12+x22>=60
+                               x13+x23>=70
+        
+Now, Subject to Non-Negativity Constraints: xij=0,where i=1,2 and j=1,2,3                       
+ ***                       
+
+#Loading Packages
+```{r}
+library(Matrix,warn.conflicts = FALSE)
+library(lpSolve,warn.conflicts = FALSE)
+```
+  
+#Building the matrix of the given problem
+```{r}
+transmatrix <- matrix(c(22,14,30,600,100,
+                        16,20,24,625,120,
+                        80,60,70,"-","210/220"),ncol=5,nrow=3,byrow = TRUE)
+colnames(transmatrix) <- c("Warehouse1","Warehouse2","Warehouse3",
+                           "Production Cost","Production Capacity")
+rownames(transmatrix) <- c("PlantA","PlantB","Monthly Demand")
+transmatrix <- as.table(transmatrix)
+transmatrix
+```
+***
+```{r}
+new.transmatrix <- matrix(c(622,614,630,0,100,
+                            641,645,649,0,120,
+                            80,60,70,10,220),ncol=5,nrow=3,byrow=TRUE)
+
+colnames(new.transmatrix) <- c("Warehouse1","Warehouse2","Warehouse3",
+                               "Dummy","Production Capacity")
+rownames(new.transmatrix) <- c("PlantA","PlantB","Monthly Demand")
+transmatrix <- as.table(new.transmatrix)
+transmatrix
+
+```
+
+***
+#The balanced values of the problem will be satisfied by this relation. The cost Matrix which we have created is shown below:
+
+```{r}
+costs<-matrix(c(622,614,630,0,
+                641,645,649,0),nrow = 2, byrow = TRUE)
+costs
+```
+#The values of the matrix of the row's Production Capacity side are as follows: 
+```{r}
+row.rhs<-c(100,120)
+row.signs<-rep("<=",2)
+```
+
+#Here, we used the double variable 10 at the end to determines the dummy variable and also we used the values of the matrix from column's side Production Capacity are as follows:
+```{r}
+col.rhs<-c(80,60,70,10)
+col.signs<-rep(">=",4)
+```
+
+#In this chunk, we are going to use the LP Transport Command to run the code
+```{r}
+lptrans<-lp.transport(costs,"min",row.signs,row.rhs,col.signs,col.rhs )
+lptrans$solution
+lptrans$objval
+```
+***
+Conclusion:From the Above Code,we can conclude that our result is Z=132790.The result for each variable of both plants are as follows:
+    60x12 which is warehouse2 from plantA
+    40x13 which is warehouse3 from plantA
+    80x21 which is warehouse1 from plantB
+    30x23 which is warehouse3 from plantB
+    10x24 which is the 4rth variable is called as the "throw away variable".
+    
