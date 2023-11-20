@@ -1,0 +1,204 @@
+---
+title: "INTEGER PROGRAMMING"
+author: "SANIA FATIMA"
+date: "2023-11-19"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Creating a table that provides an estimate of the number of workers needed each day of the week
+```{r}
+#install.packages("kableExtra")
+library(kableExtra)
+data_1 <- data.frame(Day = c("Sunday","Monday","Tuesday","Wednesday","Thursday","Frid
+ay","Saturday"),
+ Workers_Required = c(18,27,22,26,25,21,19))
+data_1 %>%
+kable(align = "c", format = "html") %>%
+ kable_styling(bootstrap_options = "bordered", full_width = TRUE) %>%
+ row_spec(0, bold = TRUE) 
+```
+
+Package handlers at AP are guaranteed a five-day work week with two consecutive days off. The
+base wage for the handlers is $750 per week. Workers working on Saturday or Sunday receive an
+additional $25 per day. The possible shifts and salaries for package handlers are:
+
+#Creating a table to show the possible shifts and salaries for package handlers
+```{r}
+data_2 <- data.frame(Shift = c(1,2,3,4,5,6,7) , 
+                     Days_Off = c("Sunday and Monday",
+                                  "Monday and Tuesday",
+                                  "Tuesday and Wednesday",
+                                  "Wednesday and Thursday",
+                                  "Thursday and Friday",
+                                  "Friday and Saturday",
+                                  "Saturday and Sunday"),
+                     Wage = c(775,800,800,800,800,775,750))
+data_2 %>%
+ kable(align = "c", format = "html") %>%
+  kable_styling(bootstrap_options = "bordered", full_width = TRUE) %>%
+  row_spec(0, bold = TRUE) 
+
+```
+
+
+Question:
+The manager wants to keep the total wage expenses as low as possible while ensuring that there
+are sufficient number of workers available each day. Formulate and solve the problem. What was
+the total cost? How many workers are available each day?
+
+
+1.Formulate the problem.
+
+Before getting into the formulation we first need to define the decision variables that are discussed as follows,
+
+w1:Number of workers assigned to Shift1
+
+w2:Number of workers assigned to Shift2
+
+w3:Number of workers assigned to Shift3
+
+w4:Number of workers assigned to Shift4
+
+w5:Number of workers assigned to Shift5
+
+w6:Number of workers assigned to Shift6
+
+w7:Number of workers assigned to Shift7
+
+Objective Function:
+
+It is given that the manager wants to minimize the total wages as low as possible, by adjusting the decision variables we can control the labor cost. So, our objective function can be formulated as follows,
+
+MinZ=775w1+800w2+800w3+800w4+800w5+775w6+750w7
+
+Constraints:
+
+Formulating the constraints for all the days in the week basing on the seven decision variables.
+
+Sunday:w2+w3+w4+w5+w6≥18
+
+Monday:w3+w4+w5+w6+w7≥27
+
+Tuesday:w1+w4+w5+w6+w7≥22
+
+Wednesday:w1+w2+w5+w6+w7≥26
+
+Thursday:w1+w2+w3+w6+w7≥25
+
+Friday:w1+w2+w3+w4+w7≥21
+
+Saturday:w1+w2+w3+w4+w5≥19
+
+Non-negativity of the decision variables:
+
+w1≥0,w2≥0,w3≥0,w4≥0,w5≥0,w6≥0,w7≥0
+
+
+Solve the problem in R markdown.
+
+#Loading the required libraries.
+```{r}
+library(lpSolveAPI)
+```
+
+#Creating an Linear Programming problem instance with 7 constraints and 7 decision variables.
+```{r}
+lp <-make.lp(7,7)
+```
+
+#Setting the objective function coefficients for the 7 decision variables.
+```{r}
+set.objfn(lp, c(775,800,800,800,800,775,750))
+```
+#Setting the Objective sense to ‘min’.
+```{r}
+lp.control(lp, sense = "min")
+```
+
+Since, this problem needs to be solved by integer programming, we need to use the type as integer, which says that all the variables should be of integers and not fractions
+#Adding the constraints to the LP problem.
+```{r}
+set.row(lp,1,c(0,1,1,1,1,1,0))
+set.row(lp,2,c(0,0,1,1,1,1,1)) 
+set.row(lp,3,c(1,0,0,1,1,1,1))
+set.row(lp,4,c(1,1,0,0,1,1,1)) 
+set.row(lp,5,c(1,1,1,0,0,1,1)) 
+set.row(lp,6,c(1,1,1,1,0,0,1)) 
+set.row(lp,7,c(1,1,1,1,1,0,0))
+```
+#Creating a vector rhs containing the right-hand side values for the two constraints
+```{r}
+rhs<-c(18,27,22,26,25,21,19)
+```
+#Setting the right-hand side values for the constraints in the LP problem.
+```{r}
+set.rhs(lp,rhs)
+```
+#Setting the constraint types for the two constraints.
+```{r}
+set.constr.type(lp,c(">=",">=",">=",">=",">=",">=",">="))
+```
+#Setting the lower bounds for the 7 decision variables. The lower bounds are set to zero in this case (non-negativity of the decision variables).
+```{r}
+set.bounds(lp,lower = rep(0,7))
+```
+
+#Assigning names to the constraints.
+```{r}
+lp.rownames<-c("Sunday","Monday","Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+dimnames(lp) = list(lp.rownames,(1:7))
+
+```
+#Assigning names to the seven decision variables
+```{r}
+
+lp.colnames <- c("w1","w2","w3","w4","w5","w6","w7")
+set.type(lp, columns = 1:7, type = "integer")
+lp
+```
+#Solving the LP problem using the specified constraints and objective function.
+```{r}
+solve(lp)
+```
+
+
+#Retrieving the optimal objective value of the LP problem.
+```{r}
+get.objective(lp)
+```
+
+#Retrieving the values of the decision variables at the optimal solution.
+
+̥This show how many workers are corresponding to each shift on respective day
+```{r}
+round(get.variables(lp))
+
+```
+#This is the total number of employees, along with their pay and shift pattern, which are described as follows:
+```{r}
+#By using the variables from the lp model 
+Table = matrix(c(0,4,5,0,8,1,0,0,0,5,0,8,1,13,2,0,0,0,8,1,13,2,4,0,0,8,1,13,2,4,5,0,0,1,13,2,3,4,0,0,0,13,2,4,5,0,8,0,0),ncol=7,byrow=TRUE)
+
+colnames(Table) = c("Shift1", "Shift2", "Shift3", "Shift4", "Shift5", "Shift6", "Shift7")
+
+row.names(Table) = c('Sunday', 'Monday', 'Tuesday','Wednesday','Thursday','Friday','Saturday')
+
+Table
+
+```
+
+
+#The below table shows employees available each day based on the shift arrangement that reduces the overall wage cost.
+
+```{r}
+
+rowSums(Table)
+
+```
+
